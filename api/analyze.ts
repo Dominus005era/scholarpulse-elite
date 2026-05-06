@@ -42,9 +42,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     let prompt = "";
     if (type === 'attendance') {
-      prompt = `Analyze ERP attendance. Count GREEN as Present, RED as Absent. Return ONLY JSON: {"present": number, "absent": number, "reportDate": "string"}`;
-    } else {
-      prompt = `Return JSON array of events: [{"date": "string", "event": "string"}]`;
+      prompt = `Analyze ERP attendance screenshots. 
+      TASK: Count GREEN as Present, RED as Absent. 
+      Return ONLY JSON: {"present": number, "absent": number, "reportDate": "string"}`;
+    } else if (type === 'calendar') {
+      prompt = `Analyze this Academic Plan/Calendar table. 
+      TASK:
+      - Extract every event from the "EVENTS" column.
+      - Extract the corresponding date/range from the "DATES" column.
+      - For ranges (e.g. 10/03/2026 to 14/03/2026), include the full string.
+      - Identify the type: "Academic", "Holiday", "Exam", or "Event".
+      
+      Return ONLY a JSON array: [{"date": "string", "event": "string", "type": "string"}]`;
     }
 
     const imageParts = images.map(img => ({

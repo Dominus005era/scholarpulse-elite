@@ -11,7 +11,13 @@ export default function CalendarPage() {
 
   useEffect(() => {
     const saved = localStorage.getItem('scholarPulse_calendar');
-    if (saved) setEvents(JSON.parse(saved));
+    if (saved) {
+      try {
+        setEvents(JSON.parse(saved));
+      } catch (e) {
+        console.error("Error loading calendar:", e);
+      }
+    }
   }, []);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -24,11 +30,17 @@ export default function CalendarPage() {
     const reader = new FileReader();
     reader.onloadend = async () => {
       const base64 = (reader.result as string).split(',')[1];
-      const result = await analyzeAcademicCalendar(base64);
+      const result = await analyzeAcademicCalendar([base64]);
       
       if (result) {
-        setEvents(result);
-        localStorage.setItem('scholarPulse_calendar', JSON.stringify(result));
+        if ('error' in result) {
+          setError(result.error as string);
+        } else if (Array.isArray(result)) {
+          setEvents(result);
+          localStorage.setItem('scholarPulse_calendar', JSON.stringify(result));
+        } else {
+          setError("AI returned an unexpected format. Please try again.");
+        }
       } else {
         setError("Failed to parse the calendar. Please ensure the image is clear and contains dates.");
       }
@@ -78,10 +90,10 @@ export default function CalendarPage() {
         <motion.div 
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="mb-8 p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 flex items-center gap-3 text-sm font-bold uppercase tracking-widest"
+          className="mb-8 p-6 rounded-3xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 flex items-center gap-4 text-sm font-bold uppercase tracking-widest leading-relaxed shadow-lg shadow-red-500/5"
         >
-          <AlertCircle size={18} />
-          {error}
+          <AlertCircle size={20} />
+          <span>{error}</span>
         </motion.div>
       )}
 
@@ -106,7 +118,7 @@ export default function CalendarPage() {
                       <Calendar size={24} />
                     </div>
                     <div>
-                      <div className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-600 mb-1">{event.type}</div>
+                      <div className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-600 mb-1">{event.type || 'Event'}</div>
                       <h3 className="text-xl font-bold uppercase tracking-tight text-black dark:text-white">{event.event}</h3>
                       <p className="text-gray-500 dark:text-gray-500 text-sm font-mono mt-1 uppercase tracking-widest">{event.date}</p>
                     </div>

@@ -34,6 +34,7 @@ export interface Achievement {
   description: string;
   date: string;
   organization: string;
+  certificateImage?: string;
 }
 
 export interface CalendarEvent {

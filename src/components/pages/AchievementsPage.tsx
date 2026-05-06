@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Award, Plus, Trash2, Calendar, Briefcase, GraduationCap, Trophy, X } from 'lucide-react';
+import { Award, Plus, Trash2, Calendar, Briefcase, GraduationCap, Trophy, X, Upload, Image as ImageIcon } from 'lucide-react';
 import { Achievement } from '../../types.ts';
 
 export default function AchievementsPage() {
@@ -11,8 +11,10 @@ export default function AchievementsPage() {
     title: '',
     description: '',
     date: '',
-    organization: ''
+    organization: '',
+    certificateImage: ''
   });
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem('scholarPulse_achievements');
@@ -24,15 +26,26 @@ export default function AchievementsPage() {
     localStorage.setItem('scholarPulse_achievements', JSON.stringify(updated));
   };
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData({ ...formData, certificateImage: reader.result as string });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
     const newAchievement: Achievement = {
       id: Math.random().toString(36).substr(2, 9),
       ...formData as Omit<Achievement, 'id'>
-    };
+    } as Achievement;
     saveAchievements([newAchievement, ...achievements]);
     setIsAdding(false);
-    setFormData({ type: 'Award', title: '', description: '', date: '', organization: '' });
+    setFormData({ type: 'Award', title: '', description: '', date: '', organization: '', certificateImage: '' });
   };
 
   const handleDelete = (id: string) => {
@@ -70,11 +83,11 @@ export default function AchievementsPage() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
               transition={{ delay: idx * 0.05 }}
-              className="p-8 rounded-[2.5rem] bg-neutral-50 dark:bg-neutral-900 border border-black/5 dark:border-white/5 relative group transition-colors"
+              className="p-8 rounded-[2.5rem] bg-neutral-50 dark:bg-neutral-900 border border-black/5 dark:border-white/5 relative group transition-colors flex flex-col"
             >
               <button 
                 onClick={() => handleDelete(achievement.id)}
-                className="absolute top-6 right-6 p-3 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all hover:bg-red-500/10 rounded-xl"
+                className="absolute top-6 right-6 p-3 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all hover:bg-red-500/10 rounded-xl z-10"
               >
                 <Trash2 size={18} />
               </button>
@@ -95,6 +108,12 @@ export default function AchievementsPage() {
 
               <p className="text-gray-500 dark:text-gray-400 font-medium mb-6 line-clamp-3">{achievement.description}</p>
               
+              {achievement.certificateImage && (
+                <div className="mb-6 rounded-2xl overflow-hidden border border-black/5 dark:border-white/5 aspect-video bg-black/5">
+                  <img src={achievement.certificateImage} alt="Certificate" className="w-full h-full object-cover" />
+                </div>
+              )}
+
               <div className="flex flex-wrap gap-4 mt-auto pt-6 border-t border-black/5 dark:border-white/5">
                 <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400">
                   <Calendar size={14} /> {achievement.date}
@@ -114,7 +133,7 @@ export default function AchievementsPage() {
             <Award size={48} />
           </div>
           <h3 className="text-2xl font-bold text-gray-400 dark:text-gray-600 uppercase tracking-tighter">No achievements logged yet.</h3>
-          <p className="text-gray-500 mt-2 font-medium">Click initialize to start building your record.</p>
+          <p className="text-gray-500 mt-2 font-medium">Click "Add Achievement" to start building your record.</p>
         </div>
       )}
 
@@ -126,7 +145,7 @@ export default function AchievementsPage() {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="w-full max-w-xl bg-white dark:bg-neutral-900 rounded-[3rem] p-10 border border-black/10 dark:border-white/10 shadow-2xl relative"
+              className="w-full max-w-xl bg-white dark:bg-neutral-900 rounded-[3rem] p-10 border border-black/10 dark:border-white/10 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar"
             >
               <button 
                 onClick={() => setIsAdding(false)}
@@ -198,6 +217,30 @@ export default function AchievementsPage() {
                     value={formData.description}
                     onChange={e => setFormData({ ...formData, description: e.target.value })}
                     className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-2xl px-5 py-3.5 focus:ring-2 focus:ring-blue-500/50 outline-none transition-all font-medium resize-none"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-1">Certificate Image (Optional)</label>
+                  <div 
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-full aspect-video bg-black/5 dark:bg-white/5 border-2 border-dashed border-black/10 dark:border-white/10 rounded-3xl flex flex-col items-center justify-center cursor-pointer hover:border-blue-500/50 transition-all overflow-hidden"
+                  >
+                    {formData.certificateImage ? (
+                      <img src={formData.certificateImage} alt="Preview" className="w-full h-full object-cover" />
+                    ) : (
+                      <>
+                        <Upload className="text-gray-400 mb-2" size={24} />
+                        <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Upload Certificate</span>
+                      </>
+                    )}
+                  </div>
+                  <input 
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleImageUpload}
+                    accept="image/*"
+                    className="hidden"
                   />
                 </div>
 
