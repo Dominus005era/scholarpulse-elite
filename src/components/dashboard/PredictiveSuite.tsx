@@ -48,17 +48,7 @@ export default function PredictiveSuite({ isOpen, onClose, record, user, endDate
 
   const getTimelineData = () => {
     if (!record.dailyLogs || record.dailyLogs.length === 0) {
-      // Dummy data if AI didn't find logs, but redesigned for lecture nodes
-      return [
-        { lecture: 'BCS452', date: '01/05', status: 'Present', val: 1 },
-        { lecture: 'BCS402', date: '01/05', status: 'Present', val: 1 },
-        { lecture: 'BCS452', date: '02/05', status: 'Absent', val: 1 },
-        { lecture: 'BCS452', date: '02/05', status: 'Present', val: 1 },
-        { lecture: 'BCC401', date: '03/05', status: 'Present', val: 1 },
-        { lecture: 'BCS451', date: '03/05', status: 'Absent', val: 1 },
-        { lecture: 'BCS452', date: '04/05', status: 'Present', val: 1 },
-        { lecture: 'BCS402', date: '04/05', status: 'Present', val: 1 },
-      ];
+      return [];
     }
     return record.dailyLogs.map(log => ({
       ...log,
@@ -198,50 +188,60 @@ export default function PredictiveSuite({ isOpen, onClose, record, user, endDate
                       </div>
                     )
                   ) : (
-                    <div className="w-full h-full flex flex-col">
-                      <h4 className="text-xs font-black uppercase tracking-widest text-blue-500 mb-8 flex items-center gap-2">
-                        <Clock size={14} /> High-Precision Lecture Timeline
-                      </h4>
-                      <div className="flex-1 min-h-0">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <BarChart data={timelineData} margin={{ bottom: 20 }}>
-                            <CartesianGrid strokeDasharray="3 3" opacity={0.05} vertical={false} />
-                            <XAxis 
-                              dataKey="lecture" 
-                              fontSize={9} 
-                              axisLine={false} 
-                              tickLine={false}
-                              tick={{ fill: '#888', fontWeight: 'bold' }}
-                              angle={-15}
-                              textAnchor="end"
-                            />
-                            <YAxis hide domain={[0, 1.2]} />
-                            <Tooltip 
-                              cursor={{fill: 'rgba(255,255,255,0.03)', radius: 12}}
-                              content={<CustomTooltip />}
-                            />
-                            <Bar dataKey="val" radius={[8, 8, 8, 8]} barSize={32} animationDuration={1500}>
-                              {timelineData.map((entry, index) => (
-                                <Cell 
-                                  key={`cell-${index}`} 
-                                  fill={entry.status === 'Present' ? '#10b981' : '#ef4444'} 
-                                  fillOpacity={0.8}
-                                  className="filter drop-shadow-lg"
-                                />
-                              ))}
-                            </Bar>
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </div>
-                      <div className="flex justify-center gap-8 mt-6 pt-6 border-t border-black/5 dark:border-white/5">
-                        <div className="flex items-center gap-2 text-[10px] font-black uppercase text-emerald-500 tracking-widest">
-                          <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]" /> Attended
+                    timelineData.length > 0 ? (
+                      <div className="w-full h-full flex flex-col">
+                        <h4 className="text-xs font-black uppercase tracking-widest text-blue-500 mb-8 flex items-center gap-2">
+                          <Clock size={14} /> High-Precision Lecture Timeline
+                        </h4>
+                        <div className="flex-1 min-h-0">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={timelineData} margin={{ bottom: 20 }}>
+                              <CartesianGrid strokeDasharray="3 3" opacity={0.05} vertical={false} />
+                              <XAxis 
+                                dataKey="lecture" 
+                                fontSize={9} 
+                                axisLine={false} 
+                                tickLine={false}
+                                tick={{ fill: '#888', fontWeight: 'bold' }}
+                                angle={-15}
+                                textAnchor="end"
+                              />
+                              <YAxis hide domain={[0, 1.2]} />
+                              <Tooltip 
+                                cursor={{fill: 'rgba(255,255,255,0.03)', radius: 12}}
+                                content={<CustomTooltip />}
+                              />
+                              <Bar dataKey="val" radius={[8, 8, 8, 8]} barSize={32} animationDuration={1500}>
+                                {timelineData.map((entry, index) => (
+                                  <Cell 
+                                    key={`cell-${index}`} 
+                                    fill={entry.status === 'Present' ? '#10b981' : '#ef4444'} 
+                                    fillOpacity={0.8}
+                                    className="filter drop-shadow-lg"
+                                  />
+                                ))}
+                              </Bar>
+                            </BarChart>
+                          </ResponsiveContainer>
                         </div>
-                        <div className="flex items-center gap-2 text-[10px] font-black uppercase text-rose-500 tracking-widest">
-                          <div className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]" /> Missed
+                        <div className="flex justify-center gap-8 mt-6 pt-6 border-t border-black/5 dark:border-white/5">
+                          <div className="flex items-center gap-2 text-[10px] font-black uppercase text-emerald-500 tracking-widest">
+                            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]" /> Attended
+                          </div>
+                          <div className="flex items-center gap-2 text-[10px] font-black uppercase text-rose-500 tracking-widest">
+                            <div className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]" /> Missed
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    ) : (
+                      <div className="flex-1 flex flex-col items-center justify-center text-center">
+                        <Clock size={64} className="text-gray-300 dark:text-neutral-700 mb-6 animate-pulse" />
+                        <h4 className="text-lg font-black uppercase tracking-widest text-gray-400 mb-2">Command Data Required</h4>
+                        <p className="text-xs text-gray-500 font-medium uppercase tracking-tighter max-w-xs">
+                          AI lecture analysis requires an active ERP log. Please upload your attendance dashboard to synchronize the timeline.
+                        </p>
+                      </div>
+                    )
                   )}
                 </div>
 
