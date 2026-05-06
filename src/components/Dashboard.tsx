@@ -20,8 +20,13 @@ export default function Dashboard({ user, history, onAddToHistory, onUpdateProfi
   const [showProjectionModal, setShowProjectionModal] = useState(false);
   const [showDetailedModal, setShowDetailedModal] = useState(false);
   const [showAnalyticsSuite, setShowAnalyticsSuite] = useState(false);
-  const [endDate, setEndDate] = useState<string>(localStorage.getItem('scholarPulse_endDate') || '');
+  const [endDate, setEndDate] = useState<string>('');
   const [tempAnalysis, setTempAnalysis] = useState<{ present: number; absent: number; reportDate?: string } | null>(null);
+
+  useEffect(() => {
+    const savedEndDate = localStorage.getItem('scholarPulse_endDate');
+    if (savedEndDate) setEndDate(savedEndDate);
+  }, []);
 
   useEffect(() => {
     if (history.length > 0 && !selectedRecord) {
