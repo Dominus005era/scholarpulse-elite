@@ -154,9 +154,9 @@ export default function Dashboard({ user, history, onAddToHistory, onUpdateProfi
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
         <StatsCard 
           icon={<CheckCircle2 className="text-emerald-400" />} 
-          label="Confirmed Present" 
+          label="Present Lectures" 
           value={selectedRecord?.present || 0}
-          detail="Total valid signatures"
+          detail="Total sessions attended"
           onClick={() => {
             setInitialSuiteTab('timeline');
             setShowAnalyticsSuite(true);
@@ -164,9 +164,9 @@ export default function Dashboard({ user, history, onAddToHistory, onUpdateProfi
         />
         <StatsCard 
           icon={<XCircle className="text-rose-400" />} 
-          label="Reported Absent" 
+          label="Absent Lectures" 
           value={selectedRecord?.absent || 0}
-          detail="Non-attendance events"
+          detail="Missed session count"
           onClick={() => {
             setInitialSuiteTab('timeline');
             setShowAnalyticsSuite(true);
@@ -174,9 +174,9 @@ export default function Dashboard({ user, history, onAddToHistory, onUpdateProfi
         />
         <StatsCard 
           icon={<Calculator className="text-blue-400" />} 
-          label={selectedRecord && selectedRecord.percentage < user.targetPercentage ? "Recovery Debt" : "Freedom Buffer"} 
+          label={selectedRecord && selectedRecord.percentage < user.targetPercentage ? "Recovery Debt" : "Lecture Buffer"} 
           value={derivedData ? (selectedRecord && selectedRecord.percentage < user.targetPercentage ? (derivedData.requiredClasses || 0) : (derivedData.possibleBunks || 0)) : (selectedRecord?.possibleBunks || 0)}
-          detail={selectedRecord && selectedRecord.percentage < user.targetPercentage ? `Lectures to hit ${user.targetPercentage}%` : "Immediate bunk capacity"}
+          detail={selectedRecord && selectedRecord.percentage < user.targetPercentage ? `Sessions to hit ${user.targetPercentage}%` : "Safe sessions to skip"}
           highlight={selectedRecord && selectedRecord.percentage < user.targetPercentage ? "red" : "blue"}
           onClick={() => {
             setInitialSuiteTab('forecast');

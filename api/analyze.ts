@@ -39,14 +39,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     let prompt = "";
     if (type === 'attendance') {
-      prompt = `Analyze this ERP attendance dashboard. 
-      1. Count total Present and total Absent classes.
-      2. Extract a list of recent daily attendance entries if visible.
+      prompt = `Analyze this ERP attendance dashboard with high precision. 
+      1. Count total "Present" and total "Absent" lecture sessions.
+      2. Extract every individual lecture session log visible (Date, Lecture/Subject name, and Status).
       Return ONLY a JSON object: {
         "present": number, 
         "absent": number, 
         "reportDate": "string",
-        "dailyLogs": [{"date": "string", "status": "Present" | "Absent"}]
+        "dailyLogs": [{"date": "string", "lecture": "string", "status": "Present" | "Absent"}]
       }`;
     } else {
       prompt = `Analyze this Academic Calendar. Extract every event and date. 
