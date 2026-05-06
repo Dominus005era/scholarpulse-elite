@@ -19,6 +19,7 @@ export default function Dashboard({ user, history, onAddToHistory, onUpdateProfi
   const [selectedRecord, setSelectedRecord] = useState<AttendanceData | null>(history[0] || null);
   const [showProjectionModal, setShowProjectionModal] = useState(false);
   const [showAnalyticsSuite, setShowAnalyticsSuite] = useState(false);
+  const [initialSuiteTab, setInitialSuiteTab] = useState<'forecast' | 'timeline'>('forecast');
   const [endDate, setEndDate] = useState<string>('');
   const [tempAnalysis, setTempAnalysis] = useState<{ present: number; absent: number; reportDate?: string } | null>(null);
 
@@ -156,12 +157,20 @@ export default function Dashboard({ user, history, onAddToHistory, onUpdateProfi
           label="Confirmed Present" 
           value={selectedRecord?.present || 0}
           detail="Total valid signatures"
+          onClick={() => {
+            setInitialSuiteTab('timeline');
+            setShowAnalyticsSuite(true);
+          }}
         />
         <StatsCard 
           icon={<XCircle className="text-rose-400" />} 
           label="Reported Absent" 
           value={selectedRecord?.absent || 0}
           detail="Non-attendance events"
+          onClick={() => {
+            setInitialSuiteTab('timeline');
+            setShowAnalyticsSuite(true);
+          }}
         />
         <StatsCard 
           icon={<Calculator className="text-blue-400" />} 
@@ -169,7 +178,10 @@ export default function Dashboard({ user, history, onAddToHistory, onUpdateProfi
           value={derivedData ? (selectedRecord && selectedRecord.percentage < user.targetPercentage ? (derivedData.requiredClasses || 0) : (derivedData.possibleBunks || 0)) : (selectedRecord?.possibleBunks || 0)}
           detail={selectedRecord && selectedRecord.percentage < user.targetPercentage ? `Lectures to hit ${user.targetPercentage}%` : "Immediate bunk capacity"}
           highlight={selectedRecord && selectedRecord.percentage < user.targetPercentage ? "red" : "blue"}
-          onClick={() => setShowAnalyticsSuite(true)}
+          onClick={() => {
+            setInitialSuiteTab('forecast');
+            setShowAnalyticsSuite(true);
+          }}
         />
         <StatsCard 
           icon={<TrendingUp className="text-violet-400" />} 
@@ -178,7 +190,10 @@ export default function Dashboard({ user, history, onAddToHistory, onUpdateProfi
           detail={`Threshold: ${user.targetPercentage}.0%`}
           progress={selectedRecord?.percentage || 0}
           highlight="purple"
-          onClick={() => setShowAnalyticsSuite(true)}
+          onClick={() => {
+            setInitialSuiteTab('forecast');
+            setShowAnalyticsSuite(true);
+          }}
         />
       </div>
 
@@ -224,7 +239,10 @@ export default function Dashboard({ user, history, onAddToHistory, onUpdateProfi
             <motion.div 
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
-              onClick={() => setShowAnalyticsSuite(true)}
+              onClick={() => {
+                setInitialSuiteTab('forecast');
+                setShowAnalyticsSuite(true);
+              }}
               className="glass rounded-[2.5rem] p-10 border-black/5 dark:border-white/5 bg-gradient-to-br from-neutral-50 to-white dark:from-neutral-900 dark:to-black cursor-pointer group"
             >
               <h3 className="text-2xl font-bold uppercase tracking-tight mb-8 flex items-center justify-between text-black dark:text-white">
@@ -395,6 +413,7 @@ export default function Dashboard({ user, history, onAddToHistory, onUpdateProfi
           record={selectedRecord} 
           user={user} 
           endDate={endDate} 
+          initialTab={initialSuiteTab}
         />
       )}
     </div>

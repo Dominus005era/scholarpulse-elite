@@ -19,6 +19,7 @@ export interface AttendanceData {
   possibleBunks: number;
   requiredClasses?: number;
   reportDate?: string; 
+  dailyLogs?: { date: string; status: 'Present' | 'Absent' }[];
 }
 
 export interface PredictionDetail {
