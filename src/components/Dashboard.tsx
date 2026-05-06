@@ -21,7 +21,7 @@ export default function Dashboard({ user, history, onAddToHistory, onUpdateProfi
   const [showAnalyticsSuite, setShowAnalyticsSuite] = useState(false);
   const [initialSuiteTab, setInitialSuiteTab] = useState<'forecast' | 'timeline'>('forecast');
   const [endDate, setEndDate] = useState<string>('');
-  const [tempAnalysis, setTempAnalysis] = useState<{ present: number; absent: number; reportDate?: string } | null>(null);
+  const [tempAnalysis, setTempAnalysis] = useState<{ present: number; absent: number; reportDate?: string; dailyLogs?: { date: string; lecture: string; status: 'Present' | 'Absent' }[] } | null>(null);
 
   useEffect(() => {
     const savedEndDate = localStorage.getItem('scholarPulse_endDate');
@@ -34,7 +34,7 @@ export default function Dashboard({ user, history, onAddToHistory, onUpdateProfi
     }
   }, [history, selectedRecord]);
 
-  const calculateDetailedBunks = (present: number, absent: number): AttendanceData => {
+  const calculateDetailedBunks = (present: number, absent: number, dailyLogs?: { date: string; lecture: string; status: 'Present' | 'Absent' }[]): AttendanceData => {
     const total = present + absent;
     const goal = user.targetPercentage / 100;
     const percentage = total === 0 ? 0 : (present / total) * 100;
@@ -57,18 +57,19 @@ export default function Dashboard({ user, history, onAddToHistory, onUpdateProfi
       percentage,
       possibleBunks: Math.max(0, possibleBunks),
       requiredClasses: Math.max(0, requiredClasses),
-      reportDate: tempAnalysis?.reportDate || new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+      reportDate: tempAnalysis?.reportDate || new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+      dailyLogs: dailyLogs || []
     };
   };
 
-  const handleAnalysisResult = (data: { present: number; absent: number; reportDate?: string }) => {
+  const handleAnalysisResult = (data: { present: number; absent: number; reportDate?: string; dailyLogs?: any[] }) => {
     setTempAnalysis(data);
     setShowProjectionModal(true);
   };
 
   const finalizeAnalysis = () => {
     if (tempAnalysis) {
-      const calculated = calculateDetailedBunks(tempAnalysis.present, tempAnalysis.absent);
+      const calculated = calculateDetailedBunks(tempAnalysis.present, tempAnalysis.absent, tempAnalysis.dailyLogs);
       onAddToHistory(calculated);
       setSelectedRecord(calculated);
       if (endDate) {
