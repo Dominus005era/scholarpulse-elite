@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { useDropzone, DropzoneOptions } from 'react-dropzone';
+import { useDropzone } from 'react-dropzone';
 import { Upload, FileText, Loader2, Sparkles, AlertCircle, X, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { analyzeAttendanceImage } from '../../services/geminiService.ts';
@@ -20,6 +20,8 @@ export default function AttendanceUploader({ onAnalyzing, onResult }: Attendance
   const [files, setFiles] = useState<FileWithPreview[]>([]);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
+    if (acceptedFiles.length === 0) return;
+    
     const newFiles = acceptedFiles.map(file => ({
       file,
       preview: URL.createObjectURL(file)
@@ -31,7 +33,9 @@ export default function AttendanceUploader({ onAnalyzing, onResult }: Attendance
   const removeFile = (index: number) => {
     setFiles(prev => {
       const newFiles = [...prev];
-      URL.revokeObjectURL(newFiles[index].preview);
+      if (newFiles[index]) {
+        URL.revokeObjectURL(newFiles[index].preview);
+      }
       newFiles.splice(index, 1);
       return newFiles;
     });
@@ -56,7 +60,8 @@ export default function AttendanceUploader({ onAnalyzing, onResult }: Attendance
           const reader = new FileReader();
           reader.readAsDataURL(fileObj.file);
           reader.onload = () => {
-            const base64 = (reader.result as string).split(',')[1];
+            const result = reader.result as string;
+            const base64 = result.split(',')[1];
             resolve(base64);
           };
           reader.onerror = () => reject(new Error("File reading failed"));
@@ -80,12 +85,10 @@ export default function AttendanceUploader({ onAnalyzing, onResult }: Attendance
     }
   };
 
-  const dropzoneOptions: DropzoneOptions = {
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: { 'image/*': ['.jpeg', '.jpg', '.png'] }
-  };
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone(dropzoneOptions);
+  });
 
   return (
     <div className="space-y-6">
@@ -126,7 +129,7 @@ export default function AttendanceUploader({ onAnalyzing, onResult }: Attendance
               <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Queue ({files.length})</h3>
               <button 
                 type="button"
-                onClick={clearAll}
+                onClick={(e) => { e.stopPropagation(); clearAll(); }}
                 className="text-xs font-medium text-red-500 hover:text-red-400 flex items-center gap-1"
               >
                 <Trash2 size={12} />
