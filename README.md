@@ -1,20 +1,58 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# ScholarPulse Elite
 
-# Run and deploy your AI Studio app
+ScholarPulse Elite is a sophisticated attendance and academic management dashboard. It leverages Gemini AI to analyze ERP attendance screenshots and academic calendars, providing students with actionable insights and tracking.
 
-This contains everything you need to run your app locally.
+## Features
 
-View your app in AI Studio: https://ai.studio/apps/ade80fc7-6f07-424b-9bbc-8e5873431be3
+- **Attendance Analysis**: Upload ERP screenshots to track presence and absence.
+- **Academic Calendar Integration**: Extract important dates, exams, and events from calendar images.
+- **Dynamic Dashboard**: Visualize your academic progress and stay on top of your schedule.
+- **Dark Mode Support**: Premium, cinematic UI with full dark/light mode toggle.
 
-## Run Locally
+## Getting Started
 
-**Prerequisites:**  Node.js
+### Prerequisites
 
+- Node.js (v18 or higher)
+- npm or yarn
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+### Installation
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/Dominus005era/scholarpulse-elite.git
+   cd scholarpulse-elite
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+
+3. **Configure environment variables**:
+   Create a `.env` file in the root directory (based on `.env.example`):
+   ```env
+   GEMINI_API_KEY="YOUR_GEMINI_API_KEY"
+   APP_URL="http://localhost:3000"
+   ```
+
+4. **Run the development server**:
+   ```bash
+   npm run dev
+   ```
+
+5. **Build for production**:
+   ```bash
+   npm run build
+   ```
+
+## Tech Stack
+
+- **Frontend**: React 19, TypeScript, Vite
+- **Styling**: Tailwind CSS 4, Motion (Framer Motion)
+- **AI**: Google Gemini API
+- **Icons**: Lucide React
+
+## License
+
+This project is private and for personal use.
