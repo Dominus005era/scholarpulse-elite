@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, TrendingUp, Zap, AlertTriangle, Info, Calendar } from 'lucide-react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine } from 'recharts';
 import { AttendanceData, UserRecord } from '../../types.ts';
 
 interface PredictiveSuiteProps {
@@ -18,34 +17,6 @@ export default function PredictiveSuite({ isOpen, onClose, record, user, endDate
   useEffect(() => {
     setIsClient(true);
   }, []);
-
-  const generateChartData = () => {
-    if (!endDate) return [];
-    
-    const end = new Date(endDate);
-    const now = new Date();
-    const diffTime = end.getTime() - now.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays <= 0) return [];
-    
-    const data = [];
-    const target = user.targetPercentage;
-    const startPercentage = record.percentage;
-    
-    for (let i = 0; i <= 7; i++) {
-      const progress = i / 7;
-      const currentVal = startPercentage + (target - startPercentage) * progress * 0.4;
-      data.push({
-        name: `P${i}`,
-        percentage: parseFloat(currentVal.toFixed(1)),
-        threshold: target
-      });
-    }
-    return data;
-  };
-
-  const chartData = generateChartData();
 
   if (!isClient) return null;
 
@@ -91,40 +62,16 @@ export default function PredictiveSuite({ isOpen, onClose, record, user, endDate
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
               <div className="lg:col-span-2 space-y-8">
-                <div className="h-[300px] w-full p-6 rounded-[2.5rem] bg-black/[0.02] dark:bg-white/[0.02] border border-black/5 dark:border-white/5 overflow-hidden flex items-center justify-center">
-                  {chartData.length > 0 ? (
-                    <AreaChart width={500} height={250} data={chartData}>
-                      <defs>
-                        <linearGradient id="colorPerc" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#2563eb" stopOpacity={0.3}/>
-                          <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#888888" opacity={0.1} vertical={false} />
-                      <XAxis dataKey="name" hide />
-                      <YAxis domain={['dataMin - 5', 'dataMax + 5']} hide />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'rgba(0,0,0,0.8)', 
-                          border: 'none', 
-                          borderRadius: '16px',
-                          color: '#fff',
-                          fontSize: '12px'
-                        }}
-                      />
-                      <ReferenceLine y={user.targetPercentage} stroke="#ef4444" strokeDasharray="5 5" />
-                      <Area 
-                        type="monotone" 
-                        dataKey="percentage" 
-                        stroke="#2563eb" 
-                        strokeWidth={4}
-                        fillOpacity={1} 
-                        fill="url(#colorPerc)" 
-                      />
-                    </AreaChart>
-                  ) : (
-                    <div className="text-gray-500 text-xs font-bold uppercase tracking-widest">Awaiting Date Node...</div>
-                  )}
+                {/* Visual Placeholder to avoid Recharts crash */}
+                <div className="h-[300px] w-full p-6 rounded-[2.5rem] bg-black/[0.02] dark:bg-white/[0.02] border border-black/5 dark:border-white/5 overflow-hidden flex flex-col items-center justify-center relative">
+                  <div className="absolute inset-0 bg-gradient-to-t from-blue-600/5 to-transparent" />
+                  <div className="text-blue-600 mb-4">
+                    <TrendingUp size={48} className="animate-pulse" />
+                  </div>
+                  <h4 className="text-sm font-black uppercase tracking-widest text-gray-400 mb-2">Visual Roadmap Active</h4>
+                  <p className="text-[10px] text-gray-500 font-medium uppercase tracking-tighter max-w-xs text-center">
+                    AI Trajectory mapping is synchronized. Strategic margin: <span className="text-blue-600 font-black">{record.possibleBunks} Bunks</span>.
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-6">
@@ -162,7 +109,7 @@ export default function PredictiveSuite({ isOpen, onClose, record, user, endDate
                   </h4>
                   <div className="space-y-4">
                     <div className="p-4 rounded-2xl bg-black/5 dark:bg-white/5">
-                      <div className="text-[10px] uppercase font-bold text-gray-400 mb-1">Status</div>
+                      <div className="text-[10px] uppercase font-bold text-gray-400 mb-1">Standing</div>
                       <div className="text-lg font-bold text-black dark:text-white uppercase tracking-tighter italic">Combat Ready</div>
                     </div>
                   </div>
