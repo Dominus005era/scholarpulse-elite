@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { useDropzone } from 'react-dropzone';
+import { useDropzone, DropzoneOptions } from 'react-dropzone';
 import { Upload, FileText, Loader2, Sparkles, AlertCircle, X, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { analyzeAttendanceImage } from '../../services/geminiService.ts';
@@ -9,10 +9,15 @@ interface AttendanceUploaderProps {
   onResult: (data: { present: number; absent: number; reportDate?: string }) => void;
 }
 
+interface FileWithPreview {
+  file: File;
+  preview: string;
+}
+
 export default function AttendanceUploader({ onAnalyzing, onResult }: AttendanceUploaderProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [files, setFiles] = useState<{ file: File; preview: string }[]>([]);
+  const [files, setFiles] = useState<FileWithPreview[]>([]);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const newFiles = acceptedFiles.map(file => ({
@@ -32,11 +37,11 @@ export default function AttendanceUploader({ onAnalyzing, onResult }: Attendance
     });
   };
 
-  const clearAll = () => {
+  const clearAll = useCallback(() => {
     files.forEach(f => URL.revokeObjectURL(f.preview));
     setFiles([]);
     setError(null);
-  };
+  }, [files]);
 
   const startAnalysis = async () => {
     if (files.length === 0) return;
@@ -47,13 +52,14 @@ export default function AttendanceUploader({ onAnalyzing, onResult }: Attendance
 
     try {
       const base64Promises = files.map(fileObj => {
-        return new Promise<string>((resolve) => {
+        return new Promise<string>((resolve, reject) => {
           const reader = new FileReader();
           reader.readAsDataURL(fileObj.file);
           reader.onload = () => {
             const base64 = (reader.result as string).split(',')[1];
             resolve(base64);
           };
+          reader.onerror = () => reject(new Error("File reading failed"));
         });
       });
 
@@ -62,7 +68,7 @@ export default function AttendanceUploader({ onAnalyzing, onResult }: Attendance
       
       if (result) {
         onResult(result);
-        clearAll(); // Clear files after successful analysis
+        clearAll(); 
       } else {
         setError("AI couldn't detect clear attendance info. Make sure the images show the color-coded table clearly.");
       }
@@ -74,10 +80,12 @@ export default function AttendanceUploader({ onAnalyzing, onResult }: Attendance
     }
   };
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+  const dropzoneOptions: DropzoneOptions = {
     onDrop,
     accept: { 'image/*': ['.jpeg', '.jpg', '.png'] }
-  });
+  };
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone(dropzoneOptions);
 
   return (
     <div className="space-y-6">
@@ -112,11 +120,12 @@ export default function AttendanceUploader({ onAnalyzing, onResult }: Attendance
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="space-y-4"
+            className="space-y-4 overflow-hidden"
           >
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Queue ({files.length})</h3>
               <button 
+                type="button"
                 onClick={clearAll}
                 className="text-xs font-medium text-red-500 hover:text-red-400 flex items-center gap-1"
               >
@@ -128,7 +137,7 @@ export default function AttendanceUploader({ onAnalyzing, onResult }: Attendance
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {files.map((file, idx) => (
                 <motion.div 
-                  key={idx}
+                  key={file.preview}
                   layout
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -136,6 +145,7 @@ export default function AttendanceUploader({ onAnalyzing, onResult }: Attendance
                 >
                   <img src={file.preview} alt="preview" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
                   <button 
+                    type="button"
                     onClick={(e) => { e.stopPropagation(); removeFile(idx); }}
                     className="absolute top-1 right-1 p-1 bg-black/50 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
                   >
@@ -146,8 +156,9 @@ export default function AttendanceUploader({ onAnalyzing, onResult }: Attendance
             </div>
 
             <button
+              type="button"
               disabled={loading}
-              onClick={startAnalysis}
+              onClick={(e) => { e.stopPropagation(); startAnalysis(); }}
               className={`w-full py-4 rounded-2xl font-bold flex items-center justify-center gap-3 transition-all ${
                 loading 
                 ? 'bg-blue-600/50 cursor-not-allowed' 
