@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import { ArrowRight, Sparkles, ShieldCheck, Target, BarChart3, Fingerprint, Globe, Cpu, Github, Twitter, Linkedin } from 'lucide-react';
 
 interface LandingPageProps {

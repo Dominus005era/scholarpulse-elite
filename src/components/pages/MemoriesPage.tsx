@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Camera, Plus, Trash2, Calendar, X, Image as ImageIcon, Maximize2 } from 'lucide-react';
 import { Memory } from '../../types.ts';
 

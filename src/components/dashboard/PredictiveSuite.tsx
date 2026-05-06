@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { X, TrendingUp, Zap, AlertTriangle, Info, Calendar } from 'lucide-react';
 import { AttendanceData, UserRecord } from '../../types.ts';
 

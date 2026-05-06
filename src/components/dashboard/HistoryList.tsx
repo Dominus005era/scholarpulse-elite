@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Trash2, ChevronRight, FileText } from 'lucide-react';
 import { AttendanceData } from '../../types.ts';
 import { cn } from '../../lib/utils.ts';

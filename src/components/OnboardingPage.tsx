@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import { GraduationCap, Landmark, Layers, Calendar, ArrowRight } from 'lucide-react';
 import { UserRecord } from '../types.ts';
 

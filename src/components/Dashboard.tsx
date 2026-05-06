@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle2, XCircle, Calculator, TrendingUp, Zap, AlertTriangle, ArrowRight, FileText, BarChart2 } from 'lucide-react';
 import { UserRecord, AttendanceData } from '../types.ts';
 import AttendanceUploader from './dashboard/AttendanceUploader.tsx';

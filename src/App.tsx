@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { AppState, UserRecord, AttendanceData } from './types.ts';
 import LandingPage from './components/LandingPage.tsx';
 import OnboardingPage from './components/OnboardingPage.tsx';

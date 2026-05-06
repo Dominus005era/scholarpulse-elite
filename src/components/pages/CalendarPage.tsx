@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Upload, FileText, ChevronRight, Loader2, AlertCircle, Trash2 } from 'lucide-react';
 import { CalendarEvent } from '../../types.ts';
 import { analyzeAcademicCalendar } from '../../services/geminiService.ts';

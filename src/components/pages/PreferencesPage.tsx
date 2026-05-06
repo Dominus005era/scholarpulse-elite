@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import { Moon, Sun, Globe, Bell, Shield, Smartphone, Zap } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext.tsx';
 import { useSettings } from '../../context/SettingsContext.tsx';

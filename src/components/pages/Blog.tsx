@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import { ArrowUpRight, BookOpen, Clock, Tag } from 'lucide-react';
 
 export default function BlogPage() {

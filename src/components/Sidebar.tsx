@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { X, User, LogOut, Settings, Award, Calendar, Moon, Sun, Home, Camera, Pencil, Check, Upload } from 'lucide-react';
 import { UserRecord, AppState } from '../types.ts';
 import { useTheme } from '../context/ThemeContext.tsx';

@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import { Layers, Zap, Shield, Cpu, Monitor, Smartphone } from 'lucide-react';
 
 export default function PlatformPage() {
