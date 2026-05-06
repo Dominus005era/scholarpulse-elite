@@ -74,8 +74,16 @@ export default function CompanyPage() {
             </div>
             
             <div className="grid grid-cols-2 gap-10">
-              <Member icon={<Award className="text-blue-400" />} name="Devesh" role="Founder & Visionary" />
-              <Member icon={<Users className="text-purple-400" />} name="Rahul" role="Co-Founder & Lead Engineer" />
+              <Member 
+                image="/DeveshSingh.jpeg" 
+                name="Devesh" 
+                role="Founder & Visionary" 
+              />
+              <Member 
+                image="/Rahul.jpeg" 
+                name="Rahul" 
+                role="Co-Founder & Lead Engineer" 
+              />
               <Member icon={<Award className="text-emerald-400" />} name="Anjali Sharma" role="UI/UX Architect" />
               <Member icon={<Users className="text-amber-400" />} name="Aryan Singh" role="Data Science Lead" />
             </div>
@@ -139,17 +147,27 @@ export default function CompanyPage() {
   );
 }
 
-function Member({ icon, name, role }: { icon: React.ReactNode; name: string; role: string }) {
+function Member({ icon, name, role, image }: { icon?: React.ReactNode; name: string; role: string; image?: string }) {
   return (
     <motion.div 
       whileHover={{ scale: 1.05 }}
       className="group"
     >
-      <div className="flex items-center gap-3 mb-2">
-        {icon}
-        <h4 className="font-bold text-lg text-black dark:text-white transition-colors">{name}</h4>
+      <div className="flex items-center gap-4 mb-3">
+        {image ? (
+          <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-blue-600/20 group-hover:border-blue-600 transition-all">
+            <img src={image} alt={name} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" />
+          </div>
+        ) : (
+          <div className="w-12 h-12 rounded-xl bg-black/5 dark:bg-white/5 flex items-center justify-center">
+            {icon}
+          </div>
+        )}
+        <div>
+          <h4 className="font-bold text-lg text-black dark:text-white transition-colors leading-none mb-1">{name}</h4>
+          <p className="text-[10px] uppercase font-black text-gray-500 dark:text-gray-600 tracking-widest transition-colors">{role}</p>
+        </div>
       </div>
-      <p className="text-xs uppercase font-bold text-gray-500 dark:text-gray-600 tracking-widest transition-colors">{role}</p>
     </motion.div>
   );
 }
