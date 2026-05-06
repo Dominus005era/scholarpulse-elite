@@ -15,7 +15,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const model = "gemini-1.5-flash";
+    const model = "gemini-1.5-flash-latest";
     let prompt = "";
 
     if (type === 'attendance') {
