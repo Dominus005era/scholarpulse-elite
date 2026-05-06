@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { useDropzone } from 'react-dropzone';
+import { useDropzone, Accept } from 'react-dropzone';
 import { Upload, FileText, Loader2, Sparkles, AlertCircle, X, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { analyzeAttendanceImage } from '../../services/geminiService.ts';
@@ -85,9 +85,14 @@ export default function AttendanceUploader({ onAnalyzing, onResult }: Attendance
     }
   };
 
+  const accept: Accept = {
+    'image/jpeg': ['.jpeg', '.jpg'],
+    'image/png': ['.png']
+  };
+
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: { 'image/*': ['.jpeg', '.jpg', '.png'] }
+    accept
   });
 
   return (
