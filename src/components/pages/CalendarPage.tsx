@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Calendar, Upload, FileText, ChevronRight, Loader2, AlertCircle } from 'lucide-react';
+import { Calendar, Upload, FileText, ChevronRight, Loader2, AlertCircle, Trash2 } from 'lucide-react';
 import { CalendarEvent } from '../../types.ts';
 import { analyzeAcademicCalendar } from '../../services/geminiService.ts';
 
@@ -65,24 +65,40 @@ export default function CalendarPage() {
           </p>
         </div>
 
-        <div className="relative group">
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleFileUpload}
-            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-            disabled={isAnalyzing}
-          />
-          <button
-            className={`px-8 py-5 rounded-[2rem] font-black uppercase tracking-widest text-sm flex items-center gap-3 transition-all shadow-xl ${
-              isAnalyzing 
-                ? 'bg-gray-200 dark:bg-neutral-800 text-gray-400' 
-                : 'bg-black dark:bg-white text-white dark:text-black hover:scale-105 group-hover:bg-blue-600 group-hover:text-white'
-            }`}
-          >
-            {isAnalyzing ? <Loader2 size={20} className="animate-spin" /> : <Upload size={20} />}
-            {isAnalyzing ? 'Analyzing Node...' : 'Upload Calendar'}
-          </button>
+        <div className="flex items-center gap-4">
+          {events.length > 0 && (
+            <button
+              onClick={() => {
+                if (confirm("Delete this roadmap?")) {
+                  setEvents([]);
+                  localStorage.removeItem('scholarPulse_calendar');
+                }
+              }}
+              className="p-5 bg-red-500/10 text-red-500 rounded-[2rem] hover:bg-red-500 hover:text-white transition-all"
+              title="Clear Roadmap"
+            >
+              <Trash2 size={20} />
+            </button>
+          )}
+          <div className="relative group">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileUpload}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+              disabled={isAnalyzing}
+            />
+            <button
+              className={`px-8 py-5 rounded-[2rem] font-black uppercase tracking-widest text-sm flex items-center gap-3 transition-all shadow-xl ${
+                isAnalyzing 
+                  ? 'bg-gray-200 dark:bg-neutral-800 text-gray-400' 
+                  : 'bg-black dark:bg-white text-white dark:text-black hover:scale-105 group-hover:bg-blue-600 group-hover:text-white'
+              }`}
+            >
+              {isAnalyzing ? <Loader2 size={20} className="animate-spin" /> : <Upload size={20} />}
+              {isAnalyzing ? 'Analyzing Node...' : 'Upload Calendar'}
+            </button>
+          </div>
         </div>
       </motion.div>
 

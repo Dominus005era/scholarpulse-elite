@@ -3,7 +3,6 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
-// List of models allowed by your key, ordered from best to most available
 const MODELS_TO_TRY = [
   "gemini-2.5-flash-lite", 
   "gemini-2.0-flash-lite",
@@ -22,9 +21,7 @@ async function generateWithRetry(prompt: string, imageParts: any[], modelIndex =
     const response = await result.response;
     return response.text();
   } catch (error: any) {
-    // If it's a Quota error (429), try the next model in the list
     if (error.message?.includes("429") || error.message?.includes("quota")) {
-      console.log(`Model ${modelName} hit quota, trying fallback...`);
       return generateWithRetry(prompt, imageParts, modelIndex + 1);
     }
     throw error;
@@ -42,38 +39,34 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     let prompt = "";
     if (type === 'attendance') {
-      prompt = `Analyze ERP attendance screenshots. 
-      TASK: Count GREEN as Present, RED as Absent. 
-      Return ONLY JSON: {"present": number, "absent": number, "reportDate": "string"}`;
-    } else if (type === 'calendar') {
-      prompt = `Analyze this Academic Plan/Calendar table. 
-      TASK:
-      - Extract every event from the "EVENTS" column.
-      - Extract the corresponding date/range from the "DATES" column.
-      - For ranges (e.g. 10/03/2026 to 14/03/2026), include the full string.
-      - Identify the type: "Academic", "Holiday", "Exam", or "Event".
-      
-      Return ONLY a JSON array: [{"date": "string", "event": "string", "type": "string"}]`;
+      prompt = `Analyze ERP attendance. Count GREEN as Present, RED as Absent. Return ONLY JSON: {"present": number, "absent": number, "reportDate": "string"}`;
+    } else {
+      prompt = `Analyze this Academic Calendar. Extract every event and date. 
+      Return ONLY a JSON array of objects: [{"date": "string", "event": "string", "type": "Academic|Holiday|Exam|Event"}]. 
+      Do not add markdown formatting or backticks.`;
     }
 
     const imageParts = images.map(img => ({
       inlineData: { mimeType: "image/jpeg", data: img }
     }));
 
-    // Start the smart failover process
     const rawText = await generateWithRetry(prompt, imageParts);
     
-    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+    // Improved JSON extraction: Finds the outermost [ or { to the end of ] or }
+    const cleanedText = rawText.trim().replace(/^```json/, '').replace(/```$/, '').trim();
+    const jsonMatch = cleanedText.match(/(\[[\s\S]*\]|\{[\s\S]*\})/);
+    
     if (jsonMatch) {
-      const data = JSON.parse(jsonMatch[0]);
-      return res.status(200).json(data);
+      try {
+        const data = JSON.parse(jsonMatch[0]);
+        return res.status(200).json(data);
+      } catch (e: any) {
+        return res.status(500).json({ error: `JSON Parse Error: ${e.message}. Raw: ${jsonMatch[0].substring(0, 50)}...` });
+      }
     }
 
-    return res.status(500).json({ error: "AI failed to generate a valid report." });
+    return res.status(500).json({ error: "AI failed to generate a valid data structure." });
   } catch (error: any) {
-    console.error("Critical API Error:", error);
-    return res.status(error.message?.includes("busy") ? 429 : 500).json({ 
-      error: error.message || "Server error occurred during analysis." 
-    });
+    return res.status(500).json({ error: error.message || "Server error occurred." });
   }
 }

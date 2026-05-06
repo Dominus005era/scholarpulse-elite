@@ -9,13 +9,19 @@ interface StatsCardProps {
   detail: string;
   progress?: number;
   highlight?: 'purple' | 'red' | 'blue' | 'green';
+  onClick?: () => void;
 }
 
-export default function StatsCard({ icon, label, value, detail, progress, highlight }: StatsCardProps) {
+export default function StatsCard({ icon, label, value, detail, progress, highlight, onClick }: StatsCardProps) {
   return (
     <motion.div
       whileHover={{ y: -5 }}
-      className="glass rounded-3xl p-6 border-black/5 dark:border-white/5 flex flex-col relative overflow-hidden group transition-colors"
+      whileTap={onClick ? { scale: 0.98 } : {}}
+      onClick={onClick}
+      className={cn(
+        "glass rounded-3xl p-6 border-black/5 dark:border-white/5 flex flex-col relative overflow-hidden group transition-colors",
+        onClick && "cursor-pointer"
+      )}
     >
       <div className="flex items-center justify-between mb-6">
         <div className="p-3 bg-black/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5 group-hover:bg-black/10 dark:group-hover:bg-white/10 transition-colors">

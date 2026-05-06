@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { CheckCircle2, XCircle, Info, Calculator, Percent, History, TrendingUp, Calendar, Zap, AlertTriangle, ArrowRight, FileText, BarChart2 } from 'lucide-react';
+import { CheckCircle2, XCircle, Calculator, TrendingUp, Zap, AlertTriangle, ArrowRight, FileText, BarChart2 } from 'lucide-react';
 import { UserRecord, AttendanceData } from '../types.ts';
 import AttendanceUploader from './dashboard/AttendanceUploader.tsx';
 import StatsCard from './dashboard/StatsCard.tsx';
 import HistoryList from './dashboard/HistoryList.tsx';
+import PredictiveSuite from './dashboard/PredictiveSuite.tsx';
 
 interface DashboardProps {
   user: UserRecord;
@@ -18,6 +19,7 @@ export default function Dashboard({ user, history, onAddToHistory, onUpdateProfi
   const [selectedRecord, setSelectedRecord] = useState<AttendanceData | null>(history[0] || null);
   const [showProjectionModal, setShowProjectionModal] = useState(false);
   const [showDetailedModal, setShowDetailedModal] = useState(false);
+  const [showAnalyticsSuite, setShowAnalyticsSuite] = useState(false);
   const [endDate, setEndDate] = useState<string>(localStorage.getItem('scholarPulse_endDate') || '');
   const [tempAnalysis, setTempAnalysis] = useState<{ present: number; absent: number; reportDate?: string } | null>(null);
 
@@ -29,8 +31,8 @@ export default function Dashboard({ user, history, onAddToHistory, onUpdateProfi
 
   const calculateDetailedBunks = (present: number, absent: number): AttendanceData => {
     const total = present + absent;
-    const percentage = total === 0 ? 0 : (present / total) * 100;
     const goal = user.targetPercentage / 100;
+    const percentage = total === 0 ? 0 : (present / total) * 100;
     
     let possibleBunks = 0;
     let requiredClasses = 0;
@@ -109,11 +111,8 @@ export default function Dashboard({ user, history, onAddToHistory, onUpdateProfi
 
   const handlePercentageChange = (val: number) => {
     onUpdateProfile({ ...user, targetPercentage: val });
-    // If there's a selected record, we should ideally re-calculate its bunks/required classes
-    // though the record itself is static in history. For UI feedback, we can re-derive:
   };
   
-  // Re-derived values for the UI based on current record but new threshold
   const derivedData = selectedRecord ? {
     possibleBunks: selectedRecord.percentage >= user.targetPercentage 
       ? Math.floor(selectedRecord.present / (user.targetPercentage/100) - selectedRecord.total)
@@ -125,7 +124,6 @@ export default function Dashboard({ user, history, onAddToHistory, onUpdateProfi
 
   return (
     <div className="pt-24 pb-20 px-6 max-w-7xl mx-auto">
-      {/* Header Info */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-12 gap-6">
         <div>
           <div className="flex items-center gap-3 mb-2">
@@ -148,7 +146,6 @@ export default function Dashboard({ user, history, onAddToHistory, onUpdateProfi
         </div>
       </div>
 
-      {/* Main Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
         <StatsCard 
           icon={<CheckCircle2 className="text-emerald-400" />} 
@@ -168,6 +165,7 @@ export default function Dashboard({ user, history, onAddToHistory, onUpdateProfi
           value={derivedData ? (selectedRecord && selectedRecord.percentage < user.targetPercentage ? (derivedData.requiredClasses || 0) : (derivedData.possibleBunks || 0)) : (selectedRecord?.possibleBunks || 0)}
           detail={selectedRecord && selectedRecord.percentage < user.targetPercentage ? `Lectures to hit ${user.targetPercentage}%` : "Immediate bunk capacity"}
           highlight={selectedRecord && selectedRecord.percentage < user.targetPercentage ? "red" : "blue"}
+          onClick={() => setShowAnalyticsSuite(true)}
         />
         <StatsCard 
           icon={<TrendingUp className="text-violet-400" />} 
@@ -176,13 +174,12 @@ export default function Dashboard({ user, history, onAddToHistory, onUpdateProfi
           detail={`Threshold: ${user.targetPercentage}.0%`}
           progress={selectedRecord?.percentage || 0}
           highlight="purple"
+          onClick={() => setShowAnalyticsSuite(true)}
         />
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
-        {/* Left Column: Analysis & History */}
         <div className="xl:col-span-8 space-y-8">
-          {/* Threshold Control */}
           <div className="glass rounded-[2rem] p-8 border-black/5 dark:border-white/5 bg-gradient-to-r from-blue-500/[0.03] to-transparent">
             <div className="flex flex-col md:flex-row justify-between items-center gap-6">
               <div>
@@ -204,7 +201,6 @@ export default function Dashboard({ user, history, onAddToHistory, onUpdateProfi
             </div>
           </div>
 
-          {/* Uploader Section */}
           <div className="glass rounded-[2.5rem] p-10 border-white/5 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/5 blur-[80px] -mr-32 -mt-32" />
             <div className="flex items-center justify-between mb-8">
@@ -220,12 +216,11 @@ export default function Dashboard({ user, history, onAddToHistory, onUpdateProfi
             />
           </div>
 
-          {/* Detailed Forecast Breakdown */}
           {projection && (
             <motion.div 
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
-              onClick={() => setShowDetailedModal(true)}
+              onClick={() => setShowAnalyticsSuite(true)}
               className="glass rounded-[2.5rem] p-10 border-black/5 dark:border-white/5 bg-gradient-to-br from-neutral-50 to-white dark:from-neutral-900 dark:to-black cursor-pointer group"
             >
               <h3 className="text-2xl font-bold uppercase tracking-tight mb-8 flex items-center justify-between text-black dark:text-white">
@@ -272,34 +267,6 @@ export default function Dashboard({ user, history, onAddToHistory, onUpdateProfi
             </motion.div>
           )}
 
-          {/* Projection Insight */}
-          {projection && (
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="p-1 border border-blue-500/20 rounded-[2rem] bg-gradient-to-r from-blue-500/10 to-purple-500/10"
-            >
-              <div className="bg-neutral-50 dark:bg-neutral-950 p-8 rounded-[1.9rem] flex flex-col md:flex-row items-center gap-8">
-                <div className="w-16 h-16 rounded-2xl bg-blue-600 flex items-center justify-center shadow-[0_0_30px_rgba(37,99,235,0.3)] shrink-0">
-                  <TrendingUp size={32} className="text-white" />
-                </div>
-                <div className="flex-grow">
-                  <h4 className="text-xl font-bold uppercase tracking-tight mb-1 italic text-blue-600 dark:text-blue-400">Deep Forecast Analysis</h4>
-                  <p className="text-gray-600 dark:text-gray-500 text-sm font-medium transition-colors">
-                    Based on {projection.remainingDays} days remaining, you can bunk <span className="text-blue-600 dark:text-blue-500 font-black">{projection.possibleBunks} more lectures</span> and still graduate with {user.targetPercentage}%+.
-                  </p>
-                </div>
-                <div className="flex gap-4 shrink-0">
-                  <div className="px-6 py-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 text-center transition-colors">
-                    <div className="text-[10px] uppercase font-bold text-gray-500 dark:text-gray-400 mb-1">Est. Freedom</div>
-                    <div className="text-2xl font-black text-blue-600 dark:text-blue-400">{projection.possibleBunks}</div>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          )}
-
-          {/* History List */}
           <div className="glass rounded-[2.5rem] p-10 border-white/5">
             <div className="flex items-center gap-3 mb-8">
               <History size={24} className="text-gray-400" />
@@ -308,8 +275,6 @@ export default function Dashboard({ user, history, onAddToHistory, onUpdateProfi
             <HistoryList 
               history={history} 
               onDelete={(id) => {
-                // Delete logic normally handled in parent, but we can emit or use local update
-                // For now, reload window is a crude but effective way given our structure
                 const newHistory = history.filter(h => h.id !== id);
                 localStorage.setItem('scholarPulse_history', JSON.stringify(newHistory));
                 window.location.reload(); 
@@ -319,12 +284,11 @@ export default function Dashboard({ user, history, onAddToHistory, onUpdateProfi
           </div>
         </div>
 
-        {/* Right Column: Profile & Info */}
         <div className="xl:col-span-4 space-y-8">
           <div className="glass rounded-[2.5rem] p-8 border-white/5 bg-gradient-to-b from-white/[0.02] to-transparent">
             <div className="flex items-center gap-4 mb-8">
               <div className="w-16 h-16 rounded-3xl bg-black/5 dark:bg-neutral-800 flex items-center justify-center border border-black/10 dark:border-white/10 transition-colors">
-                <Calendar size={28} className="text-gray-500 dark:text-gray-400" />
+                <FileText size={28} className="text-gray-500 dark:text-gray-400" />
               </div>
               <div>
                 <h3 className="text-lg font-bold text-black dark:text-white transition-colors">Academic Term</h3>
@@ -336,11 +300,11 @@ export default function Dashboard({ user, history, onAddToHistory, onUpdateProfi
               <div className="p-4 bg-black/5 dark:bg-white/5 rounded-2xl border border-black/10 dark:border-white/5 transition-colors">
                 <div className="text-[10px] uppercase font-bold text-gray-500 dark:text-gray-400 mb-3 ml-1">Threshold Goal</div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-semibold text-black dark:text-white">Strict 75.0%</span>
+                  <span className="text-sm font-semibold text-black dark:text-white">Strict {user.targetPercentage}.0%</span>
                   <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                 </div>
                 <div className="h-1.5 w-full bg-black/10 dark:bg-black rounded-full overflow-hidden">
-                  <div className="h-full w-3/4 bg-blue-600 rounded-full" />
+                  <div className="h-full bg-blue-600 rounded-full" style={{ width: `${user.targetPercentage}%` }} />
                 </div>
               </div>
 
@@ -366,7 +330,7 @@ export default function Dashboard({ user, history, onAddToHistory, onUpdateProfi
         </div>
       </div>
 
-      {/* Projection Modal */}
+      {/* Projection Configuration Modal */}
       <AnimatePresence>
         {showProjectionModal && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
@@ -419,102 +383,16 @@ export default function Dashboard({ user, history, onAddToHistory, onUpdateProfi
         )}
       </AnimatePresence>
 
-      {/* Detailed Analysis Modal */}
-      <AnimatePresence>
-        {showDetailedModal && projection && selectedRecord && (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center p-6">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowDetailedModal(false)}
-              className="absolute inset-0 bg-white/80 dark:bg-black/80 backdrop-blur-xl"
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 30 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 30 }}
-              className="w-full max-w-2xl glass bg-white dark:bg-neutral-900 rounded-[3rem] p-12 border-black/10 dark:border-white/10 relative z-10 overflow-hidden"
-            >
-              <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/10 blur-[100px] -mr-48 -mt-48" />
-              
-              <div className="flex justify-between items-start mb-12">
-                <div>
-                  <h2 className="text-4xl font-black uppercase tracking-tighter italic text-black dark:text-white">Tactical <span className="text-blue-600 dark:text-blue-500">Intelligence</span></h2>
-                  <p className="text-gray-500 dark:text-gray-400 font-medium italic mt-2">End-of-Semester Exhaustive Forecast</p>
-                </div>
-                <button 
-                  onClick={() => setShowDetailedModal(false)}
-                  className="p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
-                >
-                  <XCircle size={24} className="text-black dark:text-white" />
-                </button>
-              </div>
-
-              <div className="space-y-10">
-                <section>
-                  <h4 className="text-xs font-black uppercase tracking-[0.3em] text-blue-500 mb-6">Current Standing</h4>
-                  <div className="grid grid-cols-2 gap-8">
-                    <ReportTile label="Present Lectures" value={selectedRecord.present} />
-                    <ReportTile label="Current Percentage" value={`${selectedRecord.percentage.toFixed(1)}%`} />
-                  </div>
-                </section>
-
-                <section>
-                  <h4 className="text-xs font-black uppercase tracking-[0.3em] text-purple-500 mb-6">Future Projections</h4>
-                  <div className="grid grid-cols-2 gap-8">
-                    <ReportTile label="Lectures Remaining" value={projection.estRemaining} />
-                    <ReportTile label="End Total Estimate" value={projection.projectedTotal} />
-                  </div>
-                </section>
-
-                <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-blue-600/20 to-purple-600/20 border border-white/10">
-                  <div className="flex items-center gap-4 mb-6">
-                    <Zap className="text-yellow-400" />
-                    <h4 className="text-xl font-bold uppercase italic tracking-tight">The Freedom Metric</h4>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-end border-b border-white/10 pb-4">
-                      <div>
-                        <div className="text-[10px] uppercase font-bold text-gray-400">Net Bunk Capacity</div>
-                        <div className="text-5xl font-black italic">{projection.possibleBunks}</div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-[10px] uppercase font-bold text-gray-400">Critical Goal</div>
-                        <div className="text-2xl font-bold text-blue-400">{user.targetPercentage}%</div>
-                      </div>
-                    </div>
-                    
-                    <p className="text-sm text-gray-400 leading-relaxed italic">
-                      Based on current data, you can skip up to <strong>{projection.possibleBunks}</strong> lectures across the remaining sessions while maintaining a buffer above your <strong>{user.targetPercentage}%</strong> threshold.
-                    </p>
-                  </div>
-                </div>
-
-                {selectedRecord.percentage < user.targetPercentage && (
-                  <div className="p-8 rounded-[2rem] bg-red-500/10 border border-red-500/30 flex items-center gap-6">
-                    <AlertTriangle className="text-red-500 shrink-0" size={32} />
-                    <div>
-                      <h5 className="font-bold uppercase text-red-500 italic">Recovery Alert</h5>
-                      <p className="text-sm text-gray-400">You need <strong>{derivedData?.requiredClasses}</strong> consecutive present markings to reset your standing to target levels.</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
-
-function ReportTile({ label, value }: { label: string; value: string | number }) {
-  return (
-    <div>
-      <div className="text-[10px] uppercase font-bold text-gray-500 dark:text-gray-600 mb-1">{label}</div>
-      <div className="text-3xl font-bold tracking-tighter text-black dark:text-white">{value}</div>
+      {/* Analytics Suite Modal */}
+      {selectedRecord && (
+        <PredictiveSuite 
+          isOpen={showAnalyticsSuite} 
+          onClose={() => setShowAnalyticsSuite(false)} 
+          record={selectedRecord} 
+          user={user} 
+          endDate={endDate} 
+        />
+      )}
     </div>
   );
 }
