@@ -50,14 +50,14 @@ export default function PredictiveSuite({ isOpen, onClose, record, user, endDate
     if (!record.dailyLogs || record.dailyLogs.length === 0) {
       // Dummy data if AI didn't find logs, but redesigned for lecture nodes
       return [
-        { lecture: 'Maths', date: '01/05', status: 'Present', val: 1 },
-        { lecture: 'Physics', date: '01/05', status: 'Present', val: 1 },
-        { lecture: 'Chemistry', date: '02/05', status: 'Absent', val: 1 },
-        { lecture: 'Biology', date: '02/05', status: 'Present', val: 1 },
-        { lecture: 'English', date: '03/05', status: 'Present', val: 1 },
-        { lecture: 'History', date: '03/05', status: 'Absent', val: 1 },
-        { lecture: 'Geography', date: '04/05', status: 'Present', val: 1 },
-        { lecture: 'Arts', date: '04/05', status: 'Present', val: 1 },
+        { lecture: 'BCS452', date: '01/05', status: 'Present', val: 1 },
+        { lecture: 'BCS402', date: '01/05', status: 'Present', val: 1 },
+        { lecture: 'BCS452', date: '02/05', status: 'Absent', val: 1 },
+        { lecture: 'BCS452', date: '02/05', status: 'Present', val: 1 },
+        { lecture: 'BCC401', date: '03/05', status: 'Present', val: 1 },
+        { lecture: 'BCS451', date: '03/05', status: 'Absent', val: 1 },
+        { lecture: 'BCS452', date: '04/05', status: 'Present', val: 1 },
+        { lecture: 'BCS402', date: '04/05', status: 'Present', val: 1 },
       ];
     }
     return record.dailyLogs.map(log => ({

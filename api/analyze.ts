@@ -39,9 +39,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     let prompt = "";
     if (type === 'attendance') {
-      prompt = `Analyze this ERP attendance dashboard with high precision. 
-      1. Count total "Present" and total "Absent" lecture sessions.
-      2. Extract every individual lecture session log visible (Date, Lecture/Subject name, and Status).
+      prompt = `Analyze this ERP attendance grid. 
+      1. This is a grid with "Lecture Date" rows and P1 to P8 lecture columns.
+      2. Each cell contains a Subject Code (e.g., BCS452, BCS402) and a color (Green=Present, Red=Absent).
+      3. Count total Present and Absent sessions across all visible cells.
+      4. Extract a list of EVERY individual lecture session (Subject Code, Date, and Status).
       Return ONLY a JSON object: {
         "present": number, 
         "absent": number, 
