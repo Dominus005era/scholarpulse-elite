@@ -1,7 +1,8 @@
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+// Using the STABLE SDK version
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
@@ -15,7 +16,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const model = "gemini-1.5-flash-latest";
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     let prompt = "";
 
     if (type === 'attendance') {
@@ -27,8 +28,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       - If there is a total summary (e.g. "Total Lectures: 50, Present: 40"), use those numbers.
       
       OUTPUT FORMAT:
-      You must return ONLY a JSON object like this: {"present": 40, "absent": 10, "reportDate": "DD MMM YYYY"}. 
-      Do not include any other text.`;
+      Return ONLY a JSON object: {"present": number, "absent": number, "reportDate": "string"}. 
+      No markdown, no extra text.`;
     } else {
       prompt = `Analyze these images and return a JSON list of events: [{"date": "string", "event": "string", "type": "string"}]`;
     }
@@ -40,32 +41,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     }));
 
-    const response = await ai.models.generateContent({
-      model: model,
-      contents: {
-        parts: [
-          { text: prompt },
-          ...imageParts
-        ]
-      }
-    });
-
-    let rawText = response.text || "";
+    const result = await model.generateContent([prompt, ...imageParts]);
+    const response = await result.response;
+    let rawText = response.text();
     
-    // Attempt to extract JSON from the response text
-    // This finds the first '{' and last '}' to strip any extra text
+    // Robust JSON extraction
     const jsonMatch = rawText.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       try {
         const data = JSON.parse(jsonMatch[0]);
         return res.status(200).json(data);
       } catch (e) {
-        console.error("JSON Parse Error:", e);
-        return res.status(500).json({ error: `AI gave invalid JSON: ${rawText.substring(0, 100)}...` });
+        return res.status(500).json({ error: `AI provided invalid format. Please try a clearer screenshot.` });
       }
     }
 
-    return res.status(500).json({ error: `AI didn't provide JSON. Raw response: ${rawText.substring(0, 100)}...` });
+    return res.status(500).json({ error: "AI failed to generate a report. Please try again." });
   } catch (error: any) {
     console.error("Error in API handler:", error);
     return res.status(500).json({ error: `Server Error: ${error.message}` });
