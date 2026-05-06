@@ -39,21 +39,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: 'Invalid type' });
     }
 
-    const genAIModel = ai.getGenerativeModel({ model });
-    const result = await genAIModel.generateContent([
-      prompt,
-      {
-        inlineData: {
-          mimeType: "image/jpeg",
-          data: image
-        }
+    // Using the correct method for the @google/genai SDK
+    const response = await ai.models.generateContent({
+      model: model,
+      contents: {
+        parts: [
+          { text: prompt },
+          {
+            inlineData: {
+              mimeType: "image/jpeg",
+              data: image
+            }
+          }
+        ]
+      },
+      config: {
+        responseMimeType: "application/json"
       }
-    ]);
+    });
 
-    const responseText = result.response.text();
-    // Clean up potential markdown code blocks in the response
-    const jsonString = responseText.replace(/```json|```/g, '').trim();
-    const data = JSON.parse(jsonString);
+    const responseText = response.text || "{}";
+    const data = JSON.parse(responseText);
 
     return res.status(200).json(data);
   } catch (error: any) {
