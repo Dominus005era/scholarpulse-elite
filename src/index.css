@@ -1,0 +1,49 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+:root {
+  --grid-line: rgba(0, 0, 0, 0.05);
+}
+
+.dark {
+  --grid-line: rgba(255, 255, 255, 0.05);
+}
+
+@layer base {
+  body {
+    @apply bg-white dark:bg-black text-black dark:text-white antialiased transition-colors duration-300;
+  }
+}
+
+.glass {
+  @apply bg-black/5 dark:bg-white/5 backdrop-blur-xl border border-black/10 dark:border-white/10;
+}
+
+.glass-dark {
+  @apply bg-white/10 dark:bg-black/40 backdrop-blur-2xl border border-black/5 dark:border-white/5;
+}
+
+.neon-glow {
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-black/10 dark:bg-white/10 rounded-full hover:bg-black/20 dark:hover:bg-white/20 transition-colors;
+}
+
