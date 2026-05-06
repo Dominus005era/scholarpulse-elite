@@ -15,8 +15,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    // Switching to 1.5-flash-8b which is the most compatible free-tier model
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-8b" });
+    // Switching to 2.0-flash-lite which is explicitly in your allowed list
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-lite" });
     let prompt = "";
 
     if (type === 'attendance') {
@@ -58,7 +58,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: "AI failed to generate a report. Please try again." });
   } catch (error: any) {
     console.error("Error in API handler:", error);
-    // If it's a quota error, give a friendly message
     if (error.message?.includes("429")) {
       return res.status(429).json({ error: "API Quota exceeded. Please wait a minute or use a different API key." });
     }
