@@ -6,6 +6,8 @@ import AttendanceUploader from './dashboard/AttendanceUploader.tsx';
 import StatsCard from './dashboard/StatsCard.tsx';
 import HistoryList from './dashboard/HistoryList.tsx';
 import PredictiveSuite from './dashboard/PredictiveSuite.tsx';
+import ManualUpdateModal from './dashboard/ManualUpdateModal.tsx';
+import { Plus } from 'lucide-react';
 
 interface DashboardProps {
   user: UserRecord;
@@ -22,6 +24,7 @@ export default function Dashboard({ user, history, onAddToHistory, onUpdateProfi
   const [initialSuiteTab, setInitialSuiteTab] = useState<'forecast' | 'timeline'>('forecast');
   const [endDate, setEndDate] = useState<string>('');
   const [tempAnalysis, setTempAnalysis] = useState<{ present: number; absent: number; reportDate?: string; dailyLogs?: { date: string; lecture: string; status: 'Present' | 'Absent' }[] } | null>(null);
+  const [showManualModal, setShowManualModal] = useState(false);
 
   useEffect(() => {
     const savedEndDate = localStorage.getItem('scholarPulse_endDate');
@@ -78,6 +81,25 @@ export default function Dashboard({ user, history, onAddToHistory, onUpdateProfi
       setShowProjectionModal(false);
       setTempAnalysis(null);
     }
+  };
+
+  const handleManualUpdate = (data: { lectures: number; present: number; absent: number; date: string }) => {
+    if (!selectedRecord) return;
+    
+    const newPresent = selectedRecord.present + data.present;
+    const newAbsent = selectedRecord.absent + data.absent;
+    
+    const newLogs = [];
+    for (let i = 0; i < data.present; i++) {
+      newLogs.push({ date: data.date, lecture: `Manual Session ${i+1}`, status: 'Present' as const });
+    }
+    for (let i = 0; i < data.absent; i++) {
+      newLogs.push({ date: data.date, lecture: `Manual Session ${data.present + i + 1}`, status: 'Absent' as const });
+    }
+
+    const calculated = calculateDetailedBunks(newPresent, newAbsent, [...(selectedRecord.dailyLogs || []), ...newLogs]);
+    onAddToHistory(calculated);
+    setSelectedRecord(calculated);
   };
 
   const getProjection = () => {
@@ -228,7 +250,15 @@ export default function Dashboard({ user, history, onAddToHistory, onUpdateProfi
                 <FileText size={24} className="text-blue-600 dark:text-blue-500" />
                 Input Protocol
               </h3>
-              <div className="text-[10px] uppercase tracking-widest text-gray-500 dark:text-white/40 font-mono transition-colors">Status: Awaiting Data</div>
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={() => setShowManualModal(true)}
+                  className="px-4 py-2 bg-blue-600/10 hover:bg-blue-600/20 text-blue-600 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all border border-blue-500/20"
+                >
+                  <Plus size={14} /> Manual Update
+                </button>
+                <div className="text-[10px] uppercase tracking-widest text-gray-500 dark:text-white/40 font-mono transition-colors">Status: Awaiting Data</div>
+              </div>
             </div>
             <AttendanceUploader 
               onAnalyzing={setIsAnalyzing} 
@@ -417,6 +447,12 @@ export default function Dashboard({ user, history, onAddToHistory, onUpdateProfi
           initialTab={initialSuiteTab}
         />
       )}
+
+      <ManualUpdateModal 
+        isOpen={showManualModal} 
+        onClose={() => setShowManualModal(false)} 
+        onUpdate={handleManualUpdate}
+      />
     </div>
   );
 }
