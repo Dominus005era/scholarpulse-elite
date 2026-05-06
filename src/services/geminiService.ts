@@ -1,6 +1,6 @@
 import { CalendarEvent } from "../types.ts";
 
-export async function analyzeAttendanceImage(base64Images: string[]): Promise<{ present: number; absent: number; reportDate?: string } | null> {
+export async function analyzeAttendanceImage(base64Images: string[]): Promise<{ present: number; absent: number; reportDate?: string; error?: string } | null> {
   try {
     const response = await fetch('/api/analyze', {
       method: 'POST',
@@ -9,26 +9,24 @@ export async function analyzeAttendanceImage(base64Images: string[]): Promise<{ 
       },
       body: JSON.stringify({
         type: 'attendance',
-        images: base64Images, // Now sending an array
+        images: base64Images,
       }),
     });
 
+    const data = await response.json();
+
     if (!response.ok) {
-      throw new Error(`API error: ${response.statusText}`);
+      return { present: 0, absent: 0, error: data.error || `API Error: ${response.statusText}` };
     }
 
-    const result = await response.json();
-    if (typeof result.present === 'number' && typeof result.absent === 'number') {
-      return result;
-    }
-    return null;
-  } catch (error) {
+    return data;
+  } catch (error: any) {
     console.error("Error analyzing image via API:", error);
-    return null;
+    return { present: 0, absent: 0, error: error.message || "Network error. Please try again." };
   }
 }
 
-export async function analyzeAcademicCalendar(base64Images: string[]): Promise<CalendarEvent[] | null> {
+export async function analyzeAcademicCalendar(base64Images: string[]): Promise<CalendarEvent[] | { error: string } | null> {
   try {
     const response = await fetch('/api/analyze', {
       method: 'POST',
@@ -37,21 +35,19 @@ export async function analyzeAcademicCalendar(base64Images: string[]): Promise<C
       },
       body: JSON.stringify({
         type: 'calendar',
-        images: base64Images, // Now sending an array
+        images: base64Images,
       }),
     });
 
+    const data = await response.json();
+
     if (!response.ok) {
-      throw new Error(`API error: ${response.statusText}`);
+      return { error: data.error || `API Error: ${response.statusText}` };
     }
 
-    const result = await response.json();
-    if (Array.isArray(result)) {
-      return result;
-    }
-    return null;
-  } catch (error) {
+    return data;
+  } catch (error: any) {
     console.error("Error analyzing calendar via API:", error);
-    return null;
+    return { error: error.message || "Network error. Please try again." };
   }
 }

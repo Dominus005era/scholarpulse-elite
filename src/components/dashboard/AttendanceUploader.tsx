@@ -71,11 +71,11 @@ export default function AttendanceUploader({ onAnalyzing, onResult }: Attendance
       const base64Images = await Promise.all(base64Promises);
       const result = await analyzeAttendanceImage(base64Images);
       
-      if (result) {
-        onResult(result);
+      if (result && !result.error) {
+        onResult(result as any);
         clearAll(); 
       } else {
-        setError("AI couldn't detect clear attendance info. Make sure the images show the color-coded table clearly.");
+        setError(result?.error || "AI couldn't detect clear attendance info. Make sure the images show the color-coded table clearly.");
       }
     } catch (err) {
       setError("Failed to process images. Try again.");
