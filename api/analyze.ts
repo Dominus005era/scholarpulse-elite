@@ -8,10 +8,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { type, image } = req.body;
+  const { type, images } = req.body; // Changed from 'image' to 'images' (array)
 
-  if (!image) {
-    return res.status(400).json({ error: 'Image is required' });
+  if (!images || !Array.isArray(images) || images.length === 0) {
+    return res.status(400).json({ error: 'At least one image is required' });
   }
 
   try {
@@ -19,38 +19,44 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     let prompt = "";
 
     if (type === 'attendance') {
-      prompt = `Analyze this ERP attendance screenshot. 
-      1. Extract the total number of lectures present and absent.
-      2. Extract any date mentioned in the screenshot that indicates when this report was generated or the current date shown in the UI (often in corners or header).
+      prompt = `Analyze these ERP attendance screenshots (there may be multiple). 
       
-      Return the output in valid JSON format: {"present": number, "absent": number, "reportDate": "string or null"}. 
-      If you cannot find clear numbers, try to estimate based on the rows provided in the table. 
-      Format reportDate as 'DD MMM YYYY' if possible.`;
+      CRITICAL INSTRUCTIONS:
+      1. Look for color-coded cells in the tables:
+         - GREEN cells (or cells with text like BCS452 on a green background) = PRESENT.
+         - RED cells (or cells with text like BVE401 on a red background) = ABSENT.
+      2. If you see a numeric summary (e.g., "Total Present: 40"), use that. 
+      3. If no summary exists, COUNT every green block as 1 present and every red block as 1 absent across ALL images provided.
+      4. Sum the results from all provided images.
+      5. Extract any report date or academic period mentioned.
+
+      Return ONLY a valid JSON object: {"present": number, "absent": number, "reportDate": "string or null"}.`;
     } else if (type === 'calendar') {
-      prompt = `Analyze this Academic Calendar image. 
-      Identify all important dates, holidays, exams, and events mentioned.
+      prompt = `Analyze these Academic Calendar images. 
+      Identify all important dates, holidays, exams, and events mentioned across all images.
       
-      Return the output in valid JSON format as a list of events: 
-      [{"date": "string", "event": "string", "type": "Academic | Holiday | Exam | Event | Other"}]
-      
-      Be as precise as possible with the dates (format: YYYY-MM-DD or similar). 
-      If a range is given, split it into separate entries or use a clear string.`;
+      Return the output in valid JSON format as a single list of events: 
+      [{"date": "string", "event": "string", "type": "Academic | Holiday | Exam | Event | Other"}]`;
     } else {
       return res.status(400).json({ error: 'Invalid type' });
     }
 
-    // Using the correct method for the @google/genai SDK
-    const response = await ai.models.generateContent({
+    const genAIModel = ai.models;
+    
+    // Prepare the parts for the multi-image request
+    const imageParts = images.map(img => ({
+      inlineData: {
+        mimeType: "image/jpeg",
+        data: img
+      }
+    }));
+
+    const response = await genAIModel.generateContent({
       model: model,
       contents: {
         parts: [
           { text: prompt },
-          {
-            inlineData: {
-              mimeType: "image/jpeg",
-              data: image
-            }
-          }
+          ...imageParts
         ]
       },
       config: {

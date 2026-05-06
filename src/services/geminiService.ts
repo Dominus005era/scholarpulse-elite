@@ -1,6 +1,6 @@
 import { CalendarEvent } from "../types.ts";
 
-export async function analyzeAttendanceImage(base64Image: string): Promise<{ present: number; absent: number; reportDate?: string } | null> {
+export async function analyzeAttendanceImage(base64Images: string[]): Promise<{ present: number; absent: number; reportDate?: string } | null> {
   try {
     const response = await fetch('/api/analyze', {
       method: 'POST',
@@ -9,7 +9,7 @@ export async function analyzeAttendanceImage(base64Image: string): Promise<{ pre
       },
       body: JSON.stringify({
         type: 'attendance',
-        image: base64Image,
+        images: base64Images, // Now sending an array
       }),
     });
 
@@ -28,7 +28,7 @@ export async function analyzeAttendanceImage(base64Image: string): Promise<{ pre
   }
 }
 
-export async function analyzeAcademicCalendar(base64Image: string): Promise<CalendarEvent[] | null> {
+export async function analyzeAcademicCalendar(base64Images: string[]): Promise<CalendarEvent[] | null> {
   try {
     const response = await fetch('/api/analyze', {
       method: 'POST',
@@ -37,7 +37,7 @@ export async function analyzeAcademicCalendar(base64Image: string): Promise<Cale
       },
       body: JSON.stringify({
         type: 'calendar',
-        image: base64Image,
+        images: base64Images, // Now sending an array
       }),
     });
 
