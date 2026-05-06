@@ -21,18 +21,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (type === 'attendance') {
       prompt = `Analyze these ERP attendance screenshots. 
       
-      INSTRUCTIONS:
-      1. This is a grid of lectures. 
-      2. Count every GREEN cell as 1 "Present" lecture. (Even if it has text like BCS452 inside).
-      3. Count every RED cell as 1 "Absent" lecture. (Even if it has text like BVE401 inside).
-      4. Total them up across all images.
-      5. If there is a "Total" summary at the bottom/top of the image, prioritize those numbers.
+      TASK:
+      - Count every single GREEN block as 1 "Present" lecture.
+      - Count every single RED block as 1 "Absent" lecture.
+      - If there is a total summary (e.g. "Total Lectures: 50, Present: 40"), use those numbers.
       
-      Return ONLY a raw JSON object. No markdown, no conversational text.
-      Format: {"present": number, "absent": number, "reportDate": "string or null"}`;
-    } else if (type === 'calendar') {
-      prompt = `Analyze these Academic Calendar images. Identify all important dates and events.
-      Return ONLY a JSON array: [{"date": "string", "event": "string", "type": "Academic | Holiday | Exam | Other"}]`;
+      OUTPUT FORMAT:
+      You must return ONLY a JSON object like this: {"present": 40, "absent": 10, "reportDate": "DD MMM YYYY"}. 
+      Do not include any other text.`;
+    } else {
+      prompt = `Analyze these images and return a JSON list of events: [{"date": "string", "event": "string", "type": "string"}]`;
     }
 
     const imageParts = images.map(img => ({
@@ -52,17 +50,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     });
 
-    let responseText = response.text || "{}";
+    let rawText = response.text || "";
     
-    // SAFETY: Remove any markdown code blocks if the AI accidentally included them
-    if (responseText.includes('```')) {
-      responseText = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+    // Attempt to extract JSON from the response text
+    // This finds the first '{' and last '}' to strip any extra text
+    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      try {
+        const data = JSON.parse(jsonMatch[0]);
+        return res.status(200).json(data);
+      } catch (e) {
+        console.error("JSON Parse Error:", e);
+        return res.status(500).json({ error: `AI gave invalid JSON: ${rawText.substring(0, 100)}...` });
+      }
     }
 
-    const data = JSON.parse(responseText);
-    return res.status(200).json(data);
+    return res.status(500).json({ error: `AI didn't provide JSON. Raw response: ${rawText.substring(0, 100)}...` });
   } catch (error: any) {
     console.error("Error in API handler:", error);
-    return res.status(500).json({ error: "Failed to parse AI response. Please try again." });
+    return res.status(500).json({ error: `Server Error: ${error.message}` });
   }
 }
