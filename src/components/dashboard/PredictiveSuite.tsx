@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, TrendingUp, Zap, AlertTriangle, Info, Calendar } from 'lucide-react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine } from 'recharts';
 import { AttendanceData, UserRecord } from '../../types.ts';
 
 interface PredictiveSuiteProps {
@@ -13,7 +13,12 @@ interface PredictiveSuiteProps {
 }
 
 export default function PredictiveSuite({ isOpen, onClose, record, user, endDate }: PredictiveSuiteProps) {
-  // Calculate Projection Data for the Chart
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   const generateChartData = () => {
     if (!endDate) return [];
     
@@ -25,19 +30,15 @@ export default function PredictiveSuite({ isOpen, onClose, record, user, endDate
     if (diffDays <= 0) return [];
     
     const data = [];
-    const weeks = Math.ceil(diffDays / 7);
-    const startPercentage = record.percentage;
     const target = user.targetPercentage;
+    const startPercentage = record.percentage;
     
-    // We'll project 8 points (one for each phase of remaining time)
     for (let i = 0; i <= 7; i++) {
       const progress = i / 7;
-      // Linear trajectory simulation
-      const currentVal = startPercentage + (target - startPercentage) * progress * 0.5;
+      const currentVal = startPercentage + (target - startPercentage) * progress * 0.4;
       data.push({
-        name: `Phase ${i}`,
+        name: `P${i}`,
         percentage: parseFloat(currentVal.toFixed(1)),
-        bunks: Math.max(0, Math.floor(record.possibleBunks * (1 - progress))),
         threshold: target
       });
     }
@@ -45,6 +46,8 @@ export default function PredictiveSuite({ isOpen, onClose, record, user, endDate
   };
 
   const chartData = generateChartData();
+
+  if (!isClient) return null;
 
   return (
     <AnimatePresence>
@@ -87,14 +90,10 @@ export default function PredictiveSuite({ isOpen, onClose, record, user, endDate
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-              {/* Left Column: Visualization */}
               <div className="lg:col-span-2 space-y-8">
-                <div className="h-[350px] w-full p-6 rounded-[2.5rem] bg-black/[0.02] dark:bg-white/[0.02] border border-black/5 dark:border-white/5">
-                  <h4 className="text-xs font-black uppercase tracking-widest text-gray-500 mb-6 flex items-center gap-2">
-                    <Zap size={14} className="text-blue-500" /> Attendance Trajectory Forecast
-                  </h4>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={chartData}>
+                <div className="h-[300px] w-full p-6 rounded-[2.5rem] bg-black/[0.02] dark:bg-white/[0.02] border border-black/5 dark:border-white/5 overflow-hidden flex items-center justify-center">
+                  {chartData.length > 0 ? (
+                    <AreaChart width={500} height={250} data={chartData}>
                       <defs>
                         <linearGradient id="colorPerc" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="5%" stopColor="#2563eb" stopOpacity={0.3}/>
@@ -110,11 +109,10 @@ export default function PredictiveSuite({ isOpen, onClose, record, user, endDate
                           border: 'none', 
                           borderRadius: '16px',
                           color: '#fff',
-                          fontSize: '12px',
-                          fontWeight: 'bold'
+                          fontSize: '12px'
                         }}
                       />
-                      <ReferenceLine y={user.targetPercentage} stroke="#ef4444" strokeDasharray="5 5" label={{ position: 'right', value: 'Bunk Limit', fill: '#ef4444', fontSize: 10, fontWeight: 'bold' }} />
+                      <ReferenceLine y={user.targetPercentage} stroke="#ef4444" strokeDasharray="5 5" />
                       <Area 
                         type="monotone" 
                         dataKey="percentage" 
@@ -122,27 +120,25 @@ export default function PredictiveSuite({ isOpen, onClose, record, user, endDate
                         strokeWidth={4}
                         fillOpacity={1} 
                         fill="url(#colorPerc)" 
-                        animationDuration={2000}
                       />
                     </AreaChart>
-                  </ResponsiveContainer>
+                  ) : (
+                    <div className="text-gray-500 text-xs font-bold uppercase tracking-widest">Awaiting Date Node...</div>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-6">
                   <div className="p-6 rounded-3xl bg-emerald-500/5 border border-emerald-500/10">
                     <div className="text-[10px] font-black uppercase tracking-widest text-emerald-500 mb-1">Freedom Phase</div>
                     <div className="text-2xl font-black italic">ACTIVE</div>
-                    <p className="text-[10px] text-gray-500 font-medium mt-1 uppercase tracking-tighter">Current standing allows safe maneuvers.</p>
                   </div>
                   <div className="p-6 rounded-3xl bg-blue-500/5 border border-blue-500/10">
                     <div className="text-[10px] font-black uppercase tracking-widest text-blue-500 mb-1">Critical Goal</div>
                     <div className="text-2xl font-black italic">{user.targetPercentage}%</div>
-                    <p className="text-[10px] text-gray-500 font-medium mt-1 uppercase tracking-tighter">Your defined tactical success threshold.</p>
                   </div>
                 </div>
               </div>
 
-              {/* Right Column: Deep Insights */}
               <div className="space-y-8">
                 <section>
                   <h4 className="text-xs font-black uppercase tracking-[0.3em] text-gray-500 mb-6">Tactical Margin</h4>
@@ -157,13 +153,6 @@ export default function PredictiveSuite({ isOpen, onClose, record, user, endDate
                         <div className="text-2xl font-bold text-rose-500">{user.targetPercentage - 5}%</div>
                       </div>
                     </div>
-                    
-                    <div className="flex items-center gap-3 p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl">
-                      <AlertTriangle size={20} className="text-amber-500 shrink-0" />
-                      <p className="text-[10px] text-amber-700 dark:text-amber-400 font-bold leading-tight uppercase tracking-wider">
-                        Maintain 5% safety margin to account for ERP logging latencies.
-                      </p>
-                    </div>
                   </div>
                 </section>
 
@@ -173,14 +162,8 @@ export default function PredictiveSuite({ isOpen, onClose, record, user, endDate
                   </h4>
                   <div className="space-y-4">
                     <div className="p-4 rounded-2xl bg-black/5 dark:bg-white/5">
-                      <div className="text-[10px] uppercase font-bold text-gray-500 mb-1">Current Standing</div>
-                      <div className="text-lg font-bold text-black dark:text-white">{record.percentage.toFixed(1)}%</div>
-                    </div>
-                    <div className="p-4 rounded-2xl bg-black/5 dark:bg-white/5">
-                      <div className="text-[10px] uppercase font-bold text-gray-500 mb-1">Semester End</div>
-                      <div className="text-lg font-bold text-black dark:text-white flex items-center gap-2">
-                        <Calendar size={16} /> {new Date(endDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-                      </div>
+                      <div className="text-[10px] uppercase font-bold text-gray-400 mb-1">Status</div>
+                      <div className="text-lg font-bold text-black dark:text-white uppercase tracking-tighter italic">Combat Ready</div>
                     </div>
                   </div>
                 </section>
