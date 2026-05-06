@@ -389,7 +389,7 @@ export default function Dashboard({ user, history, onAddToHistory, onUpdateProfi
       </AnimatePresence>
 
       {/* Analytics Suite Modal */}
-      {selectedRecord && (
+      {selectedRecord && showAnalyticsSuite && (
         <PredictiveSuite 
           isOpen={showAnalyticsSuite} 
           onClose={() => setShowAnalyticsSuite(false)} 
