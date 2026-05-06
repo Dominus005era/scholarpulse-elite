@@ -1,7 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-// Using the STABLE SDK version
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -16,7 +15,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }, { apiVersion: 'v1' });
+    // Switching to 2.0-flash which is explicitly supported by your API key
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
     let prompt = "";
 
     if (type === 'attendance') {
@@ -45,14 +45,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const response = await result.response;
     let rawText = response.text();
     
-    // Robust JSON extraction
     const jsonMatch = rawText.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       try {
         const data = JSON.parse(jsonMatch[0]);
         return res.status(200).json(data);
       } catch (e) {
-        return res.status(500).json({ error: `AI provided invalid format. Please try a clearer screenshot.` });
+        return res.status(500).json({ error: `AI provided invalid format. Please try again.` });
       }
     }
 
