@@ -56,3 +56,7 @@ ScholarPulse Elite is a sophisticated attendance and academic management dashboa
 ## License
 
 This project is private and for personal use.
+
+## Disclaimer
+
+📌 Disclaimer: Some statistics displayed on this platform (such as member counts, cards generated, and community metrics) are illustrative placeholders and do not reflect real data. ScholarPulse Elite is built purely for educational and knowledge-exploration purposes.
